@@ -1,0 +1,36 @@
+# ============ 音色素材：运行时才生成，且多半涉及他人声音，绝不入库 ============
+# 参考音频（克隆用）与抓来的语音包，都放在这两个目录里
+配音服务/音色参考/
+配音服务/音色素材/
+*.wav
+*.mp3
+*.m4a
+*.flac
+_试听-*
+
+# ============ Python ============
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ============ Node ============
+node_modules/
+package-lock.json
+
+# ============ 自检与调试产物 ============
+*.log
+测试/_out*
+测试/_backup_*
+测试/_preview_*
+测试/_md5_*
+测试/_exp_instruct/
+测试/_gapfix/
+测试/_tone_demo/
+
+# ============ 编辑器 / 系统 ============
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

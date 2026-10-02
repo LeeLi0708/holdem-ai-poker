@@ -1,0 +1,102 @@
+# CosyVoice 2 推理环境依赖（Windows / 已实测跑通）
+#
+# ⚠ 这不是上游 requirements.txt 的照抄。
+#   上游那份是给 Linux + 训练用的，照抄会拖进 deepspeed / tensorrt / vllm / pynini
+#   这些在 Windows 上装不动或根本用不到的东西。
+#   这份是「**照着实测的 import 链一个一个查出来的**」，torch 2.3.1+cu121 上验证通过。
+#
+# 安装顺序很重要，见 安装CosyVoice环境.bat，或按下面四步手动：
+#
+#   ① pip install "setuptools<81"
+#        新版 setuptools(≥81) 删了 pkg_resources，而 openai-whisper 的 setup.py 还在用它。
+#
+#   ② 装 torch / torchaudio 的 CUDA 版
+#        pip install torch==2.3.1 torchaudio==2.3.1 --index-url https://download.pytorch.org/whl/cu121
+#      ⚠ PyPI 上的是 CPU 版，必须走 pytorch 官方源。
+#      ⚠ 单连接下载被限速到 1MB/s 以下（2.4GB 要半小时），
+#        推荐用 并发下载.py 先拉下来再从本地装（实测 2.3GB / 83 秒）。
+#
+#   ③ pip install --no-build-isolation "openai-whisper==20231117"
+#        ⚠ 必须带 --no-build-isolation。因为 pip 的**隔离构建环境**里用的是新版
+#          setuptools，第①步的降级在那里不生效，会报 ModuleNotFoundError: pkg_resources。
+#
+#   ④ pip install -r requirements-cosy.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+#
+# 注意：torch / torchaudio 不在下面的清单里（见步骤②）。
+
+# ---------- 数值与基础 ----------
+numpy==1.26.4
+scipy
+packaging
+tqdm
+rich
+PyYAML
+regex
+
+# ---------- 音频 ----------
+soundfile==0.12.1
+librosa==0.10.2
+onnxruntime==1.18.0
+#   ↑ 这是 CPU 版。CosyVoice 源码里有一行「只要 torch 看得到 GPU 就要
+#     CUDAExecutionProvider」，装了 CPU 版会直接抛异常 —— 已由
+#     补丁-CosyVoice-Windows.py 改成按可用 provider 过滤。
+#     想给 speech tokenizer 提速可以换 onnxruntime-gpu，但要求 CUDA/cuDNN 版本严丝合缝，
+#     不换也完全能用（实测没问题，只是 tokenizer 走 CPU）。
+openai-whisper==20231117
+#   ↑ cli/frontend.py 顶层 import，用它的 log_mel_spectrogram 提 128 维 mel 特征。
+#     必须配合步骤①③。
+tiktoken                      # whisper 的依赖
+
+# ---------- 文本前端 ----------
+# 上游要 WeTextProcessing==1.0.3，它依赖 pynini —— Windows 上只能 conda-forge 装、极易失败。
+# 新版权重已改用 wetext，而且 cli/frontend.py 的文本前端是三级降级：
+#     ttsfrd → wetext → 空
+# 实测装上 wetext 后日志显示 "use wetext frontend"，文本规范化更准；不装也能跑。
+# **一个 pynini 相关的包都不需要。**
+wetext==0.1.8
+inflect==7.3.1                # 英文数字拼读，frontend.py 顶层用到
+
+# ---------- 模型与配置 ----------
+# torch / torchaudio 见上面步骤②
+transformers==4.51.3
+x-transformers==2.11.24
+einops
+conformer==0.3.2              # Matcha-TTS 的 decoder 依赖
+diffusers==0.29.0             # 同上（要 LoRACompatibleLinear，版本别乱升）
+HyperPyYAML==1.2.3
+omegaconf==2.3.0
+hydra-core==1.3.2
+modelscope==1.20.0            # cli/cosyvoice.py 顶层 import，躲不掉
+
+# ---------- ⚠ 下面这些是「照着实测 import 链补出来的」----------
+# 一开始以为不用装，结果一个个报 ModuleNotFoundError 才补上。
+# 根因：Matcha-TTS 的 matcha/utils/__init__.py 会把训练辅助模块全拉进来，
+# 而这些模块又有各自的依赖 —— 即使推理根本不用它们。
+pkg_resources → 见步骤①的 setuptools<81
+gdown                         # matcha/utils/utils.py
+wget                          # matcha/utils/utils.py
+matplotlib                    # matcha/utils/utils.py（顶层的 import matplotlib.pyplot）
+pyarrow                       # cosyvoice/dataset/processor.py（被模块链传导进推理）
+pyworld==0.3.5                # 同上（意外：Windows 有预编译 wheel，不用编译）
+Unidecode                     # matcha/text/cleaners.py
+rootutils                     # matcha/utils/utils.py
+lightning                     # matcha/utils/{instantiators,logging_utils,rich_utils}.py
+#   ↑ 本来以为能靠补丁绕掉 pylogger 那一处就省了，结果 __init__ 还会拉
+#     instantiators / rich_utils / logging_utils，它们都要 lightning。
+#     与其在别人代码里越改越多，不如老实装上（连同 torchmetrics / lightning-utilities，
+#     约 150MB），少一类莫名其妙的失败。
+
+# ---------- 本项目自用 ----------
+edge-tts                      # 准备音色.py 用它生成参考音频
+
+# ============================================================
+# 故意【不装】的 —— 已核实：函数内延迟导入 + 训练/加速路径，推理用不到
+# ============================================================
+# deepspeed     仅 bin/train.py、utils/train_utils.py
+# tensorrt      仅 cli/model.py 的 load_trt()、file_utils.convert_onnx_to_trt()
+# vllm          仅 cli/model.py 的 load_vllm()、cosyvoice/vllm/
+# ttsfrd        仅 cli/frontend.py（try/except 里，属于可选前端）
+# phonemizer    仅 matcha/text/cleaners.py（不在推理链上）
+# gradio        仅 matcha/app.py（WebUI）
+# wandb         仅 matcha/utils/utils.py 的函数体内（顶层没引）
+# 上游 requirements 里的 gradio / fastapi / tensorboard 也都是给 WebUI 和训练用的

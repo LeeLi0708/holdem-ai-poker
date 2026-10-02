@@ -1,0 +1,14 @@
+# 行尾统一：仓库里存 LF，但 .bat 必须是 CRLF
+# —— cmd.exe 不认 LF 行尾，会报「不是内部或外部命令」并把中文显示成乱码。
+* text=auto
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 二进制
+*.png binary
+*.webp binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.mp3 binary
+*.wav binary

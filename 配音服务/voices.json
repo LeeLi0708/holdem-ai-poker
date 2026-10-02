@@ -1,0 +1,135 @@
+{
+  "_readme": [
+    "每个角色用什么嗓子，改这里就行 —— 不用动那个 1.5MB 的 HTML。",
+    "key 必须和德州扑克.html 里 PROFILES 的 key 一致（liyi/maiqi/aimi/jiexi/wangyi/lili/hujie）。",
+    "改完重启配音服务即生效（页面不用刷新）。",
+    "",
+    "=== 两个后端 ===",
+    "backend = \"edge\"  → edge-tts，微软的免费合成。pip 一个包就能用，不需要显卡。",
+    "                     缺点：文本要发到微软那边；中文女声只有 6 个，7 个角色必有一组共用。",
+    "backend = \"cosy\"  → CosyVoice 2，本地 GPU 跑。全离线、可克隆任意嗓子、能控语速。",
+    "                     代价：装环境（见 README）、约 4~6GB 显存、首次加载 30~60 秒。",
+    "",
+    "=== edge 后端的字段 ===",
+    "  voice  音色名，跑 `python server.py --list-voices` 看这台机器上有哪些",
+    "  rate   语速，必须带正负号和百分号：\"+18%\" / \"-12%\"",
+    "  pitch  音高，必须带正负号和 Hz：\"+7Hz\" / \"-6Hz\"",
+    "  可选音色（实测可用，共 6 个中文女声）：",
+    "    zh-CN-XiaoxiaoNeural 晓晓 · zh-CN-XiaoyiNeural 晓伊",
+    "    zh-CN-liaoning-XiaobeiNeural 晓北(东北) · zh-CN-shaanxi-XiaoniNeural 晓妮(陕西)",
+    "    zh-TW-HsiaoChenNeural 晓臻(台湾) · zh-TW-HsiaoYuNeural 晓雨(台湾)",
+    "",
+    "=== cosy 后端的字段 ===",
+    "  spk_id   该角色在 CosyVoice 音色表里的名字（默认就是 key）",
+    "  speed    语速倍数（0.5~2.0，默认 1.0）—— 和 edge 的 rate 不是一个单位，别混用",
+    "  参考音频放 配音服务/音色参考/<key>.wav，跑「准备音色.py」注册",
+    "",
+    "=== 🎭 语气（演技）—— 请求级参数，不在这个文件里配 ===",
+    "页面每次合成时会额外带两个字段，服务端就地生效，不用改这里：",
+    "  tone    口气 id：hot 恼火 / glad 得意 / down 丧气 / quick 急促 / slow 慢悠悠",
+    "          留空或给个不认识的词 = 平铺直叙。指令串在 server.py 的 TONES 表里，",
+    "          想加一种口气改那里就行（官方还支持 16 种方言、音量和音量/风格类）。",
+    "  speed   全场语速倍率（0.5~2.0）。会和这里每个角色的 speed **相乘** ——",
+    "          角色的快慢是性格，这个倍率是全场调音，两者互不顶替。",
+    "只对 backend=cosy 有效（用的是 CosyVoice2 的「自然语言指令」）；",
+    "edge 后端会安静地忽略这两个字段。",
+    "自检：python 测试/语气服务自检.py（需要服务已经在跑）",
+    "",
+    "两个后端各自记字段，互不干扰 —— 切 backend 不用删另一边的配置。"
+  ],
+
+  "backend": "edge",
+
+  "voices": {
+    "liyi": {
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "-12%",
+      "pitch": "-4Hz",
+      "spk_id": "liyi",
+      "speed": 0.88,
+      "note": "李姨 56 岩石型 —— 低、慢、极少话。她不诈唬，所以声音要沉得住。"
+    },
+    "maiqi": {
+      "voice": "zh-CN-XiaoyiNeural",
+      "rate": "+18%",
+      "pitch": "+7Hz",
+      "spk_id": "maiqi",
+      "speed": 1.18,
+      "note": "麦琪 22 疯子型 —— 又快又高，像要掀桌。全下的时候应该有点刺耳。"
+    },
+    "aimi": {
+      "voice": "zh-TW-HsiaoChenNeural",
+      "rate": "+2%",
+      "pitch": "-1Hz",
+      "spk_id": "aimi",
+      "speed": 1.0,
+      "note": "艾米 30 精算型 —— 平、冷、有距离感。她在念赔率，不带情绪才是对的。"
+    },
+    "jiexi": {
+      "voice": "zh-CN-shaanxi-XiaoniNeural",
+      "rate": "+8%",
+      "pitch": "+3Hz",
+      "spk_id": "jiexi",
+      "speed": 1.08,
+      "note": "杰西 26 诈唬型 —— 跳脱，尾音往上挑，听着就不太可信。"
+    },
+    "wangyi": {
+      "voice": "zh-CN-liaoning-XiaobeiNeural",
+      "rate": "-10%",
+      "pitch": "-3Hz",
+      "spk_id": "wangyi",
+      "speed": 0.9,
+      "note": "王姨 55 保守型 —— 中低、慢，带东北口音，像在唠叨钱要一分一分挣。"
+    },
+    "lili": {
+      "voice": "zh-TW-HsiaoYuNeural",
+      "rate": "-6%",
+      "pitch": "+10Hz",
+      "spk_id": "lili",
+      "speed": 0.94,
+      "note": "莉莉 19 跟注型 —— 高、软、慢。她不太懂战术，只是觉得热闹。"
+    },
+    "hujie": {
+      "voice": "zh-CN-XiaoxiaoNeural",
+      "rate": "+6%",
+      "pitch": "-6Hz",
+      "spk_id": "hujie",
+      "speed": 1.06,
+      "note": "虎姐 30 凶悍型 —— 低而有力、偏快。不是在玩，是在压你。（和李姨共用晓晓，但语速差 18%，一听就分开）"
+    }
+  },
+
+  "default": {
+    "voice": "zh-CN-XiaoxiaoNeural",
+    "rate": "+0%",
+    "pitch": "+0Hz",
+    "note": "花名册里换了人、或者出现没登记的 key 时用它。"
+  },
+
+  "cosy": {
+    "repo": "",
+    "model_dir": "",
+    "fp16": true,
+    "speed": 1.0,
+    "_note": [
+      "repo       CosyVoice 源码目录（含 third_party/Matcha-TTS）",
+      "model_dir  权重目录（约 3.8GB）",
+      "fp16       半精度 —— 省一半显存。8GB 显存建议保持 true。",
+      "speed      全局语速；单个角色的 speed 会覆盖它",
+      "",
+      "⚠ CosyVoice2-0.5B 是基座模型，自带音色表是空的，必须先跑「准备音色.py」",
+      "   给 7 个角色各生成一段参考音频并注册。详见 README。"
+    ]
+  },
+
+  "cmd": {
+    "_note": [
+      "想接别的引擎（自己写的脚本、GPT-SoVITS、IndexTTS2……）就用这个后端。",
+      "{txt} 会被替换成写着你这句话的文本文件（UTF-8），",
+      "{out} 是要求你的命令生成的音频文件路径。",
+      "例如：\"run\": \"mytool.exe --text {txt} --out {out}\", \"ext\": \"wav\""
+    ],
+    "run": "",
+    "ext": "wav"
+  }
+}
