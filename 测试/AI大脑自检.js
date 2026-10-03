@@ -1965,11 +1965,11 @@ const brainOnSeat = p => !p.isHuman;
     // —— P0-1 的回归断言：带 emoji 的 revealed 必须能被解析出「谁」 ——
     // 旧代码用 indexOf(名字+'：')===0 判断，而 revealed 第一段是 emoji（下标=2），
     // 于是 SUMMARY 里永远不出现 showed and won。这里把那个前提钉死。
-    const rawRev = '🔥麦琪：Q♠ Q♦';
-    ok(rawRev.indexOf('麦琪：') !== 0, '前提：revealed 带 emoji 前缀，indexOf(...)===0 本来就为假',
-      '实测下标=' + rawRev.indexOf('麦琪：'));
-    const revs = H.psReveals({ revealed: [rawRev, '🧮艾米：A♥ A♣'] });
-    ok(revs.length === 2 && revs[0].who === '麦琪' && revs[1].who === '艾米',
+    const rawRev = '🔥绯罗刹：Q♠ Q♦';
+    ok(rawRev.indexOf('绯罗刹：') !== 0, '前提：revealed 带 emoji 前缀，indexOf(...)===0 本来就为假',
+      '实测下标=' + rawRev.indexOf('绯罗刹：'));
+    const revs = H.psReveals({ revealed: [rawRev, '🧮零·苓霜：A♥ A♣'] });
+    ok(revs.length === 2 && revs[0].who === '绯罗刹' && revs[1].who === '零·苓霜',
       'psReveals 能剥掉 emoji，正确取出名字', JSON.stringify(revs.map(r => r.who)));
     ok(revs[0].cards === 'Qs Qd' && revs[1].cards === 'Ah Ac',
       'psReveals 同时把牌还原成 PokerStars 写法', revs.map(r => r.cards).join(' | '));
@@ -1977,27 +1977,27 @@ const brainOnSeat = p => !p.isHuman;
     const boardTxt = '2♥ 7♣ J♠ 3♦ 9♥';
     const bc = H.psStrToCards(H.psCards(boardTxt));
     ok(bc.length === 5, 'psStrToCards 能把公共牌还原成 5 张引擎牌');
-    ok(H.psHandNameOf(H.psStrToCards('Qs Qd').concat(bc)) === '一对', '麦琪的牌型算出来是一对');
-    ok(H.psHandNameOf(H.psStrToCards('Ah Ac').concat(bc)) === '一对', '艾米的牌型算出来是一对');
+    ok(H.psHandNameOf(H.psStrToCards('Qs Qd').concat(bc)) === '一对', '绯罗刹的牌型算出来是一对');
+    ok(H.psHandNameOf(H.psStrToCards('Ah Ac').concat(bc)) === '一对', '零·苓霜的牌型算出来是一对');
     ok(H.psHandNameOf(H.psStrToCards('As Kd').concat(bc)) === '高牌', '我的牌型算出来是高牌（跟她们不一样）');
 
     // 手工构造一手真摊牌，逐行核对牌谱格式
     const fake = {
       h: 7, t: Date.now(), blinds: '10/20', pos: '按钮位',
       hole: 'A♠ K♦', board: boardTxt, mine: '翻前：跟注（加到 20）', table: '翻前｜你 加到 20',
-      rivals: 7, revealed: ['🔥麦琪：Q♠ Q♦', '🧮艾米：A♥ A♣'], showSay: [],
+      rivals: 7, revealed: ['🔥绯罗刹：Q♠ Q♦', '🧮零·苓霜：A♥ A♣'], showSay: [],
       withdrew: false, foldStreet: -1, showdown: true, hname: '高牌', allin: false,
       pot: 1000, delta: -300, chips: 700, raises: 1, calls: 1, checks: 0,
       vpip: true, pfr: true, sawFlop: true,
-      sbName: '李姨', bbName: '麦琪', dealerName: '你',
-      stacks: [{ i: 0, n: '你', chips: 1000, out: false }, { i: 1, n: '李姨', chips: 1000, out: false },
-               { i: 2, n: '麦琪', chips: 1000, out: false }, { i: 3, n: '艾米', chips: 1000, out: false },
-               { i: 4, n: '杰西', chips: 1000, out: false }, { i: 5, n: '王姨', chips: 1000, out: false },
-               { i: 6, n: '莉莉', chips: 1000, out: false }, { i: 7, n: '虎姐', chips: 1000, out: false }],
-      acts: [{ s: 0, i: 1, n: '李姨', a: 'call', to: 20, put: 10, allin: false, face: 10 },
-             { s: 0, i: 4, n: '杰西', a: 'fold', to: 0, put: 0, allin: false, face: 20 },
+      sbName: '墨千夜', bbName: '绯罗刹', dealerName: '你',
+      stacks: [{ i: 0, n: '你', chips: 1000, out: false }, { i: 1, n: '墨千夜', chips: 1000, out: false },
+               { i: 2, n: '绯罗刹', chips: 1000, out: false }, { i: 3, n: '零·苓霜', chips: 1000, out: false },
+               { i: 4, n: '魅羽·J', chips: 1000, out: false }, { i: 5, n: '稔岁姨', chips: 1000, out: false },
+               { i: 6, n: '糖宫莉莉', chips: 1000, out: false }, { i: 7, n: '虎彻·牙', chips: 1000, out: false }],
+      acts: [{ s: 0, i: 1, n: '墨千夜', a: 'call', to: 20, put: 10, allin: false, face: 10 },
+             { s: 0, i: 4, n: '魅羽·J', a: 'fold', to: 0, put: 0, allin: false, face: 20 },
              { s: 1, i: 0, n: '你', a: 'check', to: 0, put: 0, allin: false, face: 0 }],
-      winners: [{ n: '麦琪', amt: 700 }], uncalled: { n: '麦琪', amt: 200 }
+      winners: [{ n: '绯罗刹', amt: 700 }], uncalled: { n: '绯罗刹', amt: 200 }
     };
     const ps = H.psHandText(fake);
     ok(ps.indexOf('PokerStars Hand #1') === 0, '牌谱以标准手牌编号开头', ps.split('\n')[0].slice(0, 52));
@@ -2010,12 +2010,12 @@ const brainOnSeat = p => !p.isHuman;
     ok(ps.indexOf('*** HOLE CARDS ***') > 0 && ps.indexOf('Dealt to 你 [As Kd]') > 0, '有底牌段');
     ok(/\*\*\* (FLOP|TURN|RIVER) \*\*\* \[/.test(ps), '有逐街分段（带公共牌）');
     ok(ps.indexOf('*** SHOW DOWN ***') > 0, '有摊牌段');
-    ok(ps.indexOf('麦琪: shows [Qs Qd] (一对)') > 0, 'P0-1 摊牌者写出自己的牌型（不是套用我的）',
-      (ps.split('\n').find(l => l.indexOf('麦琪: shows') === 0) || '（没找到）'));
-    ok(ps.indexOf('艾米: shows [Ah Ac] (一对)') > 0, '每个摊牌者各算各的牌型');
+    ok(ps.indexOf('绯罗刹: shows [Qs Qd] (一对)') > 0, 'P0-1 摊牌者写出自己的牌型（不是套用我的）',
+      (ps.split('\n').find(l => l.indexOf('绯罗刹: shows') === 0) || '（没找到）'));
+    ok(ps.indexOf('零·苓霜: shows [Ah Ac] (一对)') > 0, '每个摊牌者各算各的牌型');
     ok(ps.indexOf('你: shows [As Kd] (高牌)') > 0, 'P0-2 我自己摊牌了也要写进 SHOW DOWN');
-    ok(ps.indexOf('Uncalled bet ($200) returned to 麦琪') > 0, 'P0-2 写出了「未被跟注，退还」那一行');
-    ok(ps.indexOf('麦琪 collected $700 from pot') > 0, 'P0-2 写出了 collected 那一行');
+    ok(ps.indexOf('Uncalled bet ($200) returned to 绯罗刹') > 0, 'P0-2 写出了「未被跟注，退还」那一行');
+    ok(ps.indexOf('绯罗刹 collected $700 from pot') > 0, 'P0-2 写出了 collected 那一行');
     ok(ps.indexOf('*** SUMMARY ***') > 0 && ps.indexOf('Total pot $1000 | Rake 0') > 0, '有结算总览（Total pot 用 $）');
     ok(/^Seat \d+: .+ \(\$\d+ in chips\)$/m.test(ps), '座位行是 PokerStars 认的格式');
     // ⚠ 座位号必须是 1..N：引擎内部是 0..7（0 = 你），直接打出去会出现 'Seat 0'，
@@ -2034,13 +2034,13 @@ const brainOnSeat = p => !p.isHuman;
     // 现在改成 seatNo(i)=i+1，两个口径统一，这条断言连着 SUMMARY 一起验。
     ok(ps.indexOf('Seat #1 is the button') > 0, '你是庄家时，按钮标在 Seat #1 上',
       (ps.split('\n').find(l => l.indexOf('is the button') > 0) || '（没找到）'));
-    // 麦琪是 bbName（大盲），引擎 2 号座 → 牌谱 Seat 3
+    // 绯罗刹是 bbName（大盲），引擎 2 号座 → 牌谱 Seat 3
     const sumLine2 = (ps.split('\n').filter(l => /^Seat 3: /.test(l)).pop()) || '（没找到）';
-    ok(/^Seat 3: 麦琪 \(big blind\) showed \[Qs Qd\] and won \(\$700\) with 一对$/.test(sumLine2),
+    ok(/^Seat 3: 绯罗刹 \(big blind\) showed \[Qs Qd\] and won \(\$700\) with 一对$/.test(sumLine2),
       'P0-1 SUMMARY 里摊牌赢家是 showed [...] and won ($X) with 牌型', sumLine2);
     ok(/^Seat 1: 你 \(button\)/m.test(ps), 'SUMMARY 里按钮位标在「你」（Seat 1）上',
       (ps.split('\n').find(l => /^Seat 1: /.test(l)) || '（没找到）'));
-    ok(/^Seat \d+: 杰西 \(folded\)$/m.test(ps), 'SUMMARY 里弃牌的人标了 folded');
+    ok(/^Seat \d+: 魅羽·J \(folded\)$/m.test(ps), 'SUMMARY 里弃牌的人标了 folded');
 
     // 老档案（没有 winners / uncalled）必须优雅降级，不能崩、也不能编数
     const oldRec = Object.assign({}, fake, { winners: [], uncalled: null });
@@ -2267,7 +2267,7 @@ const brainOnSeat = p => !p.isHuman;
     const cssAll = [...d.querySelectorAll('style')].map(x => x.textContent).join('');
     ok(cssAll.indexOf('.ailog-kind.k-coachchat') >= 0, 'P0-5 补上了 k-coachchat 徽章样式');
     // P0-1 的关键前提：测「带 emoji 的 revealed」用老办法判不出来（回归钉子）
-    ok('🔥麦琪：A♠ K♦'.indexOf('麦琪：') !== 0, 'P0-1 前提：老写法 indexOf(...)===0 判不出摊牌者');
+    ok('🔥绯罗刹：A♠ K♦'.indexOf('绯罗刹：') !== 0, 'P0-1 前提：老写法 indexOf(...)===0 判不出摊牌者');
 
     // P1-2 存档只认座位号 → 现在还要核对人名
     H.saveGame();
@@ -2538,7 +2538,7 @@ const brainOnSeat = p => !p.isHuman;
     victim.mem = H.fixMem(victim.mem);
     victim.mem.milestones.push({
       h: 99, kind: 'loss', hole: 'A♠ A♦', board: 'K♥ 9♣ 4♦ 2♠ 7♥',
-      line: '翻前 麦琪加60→你加180→麦琪跟 → 翻牌[K♥9♣4♦] 你下240→麦琪全下900→你跟', res: -900,
+      line: '翻前 绯罗刹加60→你加180→绯罗刹跟 → 翻牌[K♥9♣4♦] 你下240→绯罗刹全下900→你跟', res: -900,
       lesson: '', showdown: true
     });
     ok(victim.mem.milestones.length > 0, '刻骨铭心是结构化的（对象数组，不是一串字符串）',
@@ -2627,11 +2627,11 @@ const brainOnSeat = p => !p.isHuman;
     // 触发一次，看真的插进了 DOM
     const layer = q('fxLayer');
     const n0 = layer.children.length;
-    H.fxAllIn('麦琪', 1200);
+    H.fxAllIn('绯罗刹', 1200);
     ok(layer.children.length > n0, '★ 调用后会往特效层插元素',
       n0 + ' → ' + layer.children.length);
     ok(layer.textContent.indexOf('ALL IN') >= 0, '全下显示 ALL IN');
-    ok(layer.textContent.indexOf('麦琪') >= 0, '全下带上是谁全下');
+    ok(layer.textContent.indexOf('绯罗刹') >= 0, '全下带上是谁全下');
     // 全下的座位要有常亮标记（renderSeat 里挂 class）
     const me0 = H.players()[1];
     const bakAllin = me0.allIn;
@@ -2664,42 +2664,42 @@ const brainOnSeat = p => !p.isHuman;
     try{
       hl.length = 0;
       [
-        { s:0, seat:2, name:'麦琪', act:'raise', to:60,  allin:false, face:20,  potBefore:30,   put:60  },
-        { s:0, seat:1, name:'李姨', act:'call',  to:60,  allin:false, face:60,  potBefore:90,   put:60  },
+        { s:0, seat:2, name:'绯罗刹', act:'raise', to:60,  allin:false, face:20,  potBefore:30,   put:60  },
+        { s:0, seat:1, name:'墨千夜', act:'call',  to:60,  allin:false, face:60,  potBefore:90,   put:60  },
         { s:0, seat:0, name:'你',   act:'call',  to:60,  allin:false, face:60,  potBefore:150,  put:60  },
-        { s:0, seat:3, name:'艾米', act:'fold',  to:0,   allin:false, face:60,  potBefore:210,  put:0   },
-        { s:1, seat:2, name:'麦琪', act:'allin', to:900, allin:true,  face:0,   potBefore:240,  put:660 },
-        { s:1, seat:1, name:'李姨', act:'fold',  to:0,   allin:false, face:900, potBefore:900,  put:0   },
+        { s:0, seat:3, name:'零·苓霜', act:'fold',  to:0,   allin:false, face:60,  potBefore:210,  put:0   },
+        { s:1, seat:2, name:'绯罗刹', act:'allin', to:900, allin:true,  face:0,   potBefore:240,  put:660 },
+        { s:1, seat:1, name:'墨千夜', act:'fold',  to:0,   allin:false, face:900, potBefore:900,  put:0   },
         { s:1, seat:0, name:'你',   act:'call',  to:900, allin:false, face:900, potBefore:1140, put:660 }
       ].forEach(e => hl.push(e));
       bd.length = 0;
       bd.push({ r: 13, s: 0 }, { r: 9, s: 3 }, { r: 4, s: 2 });
 
-      const L1 = H.lineOfHand(1, 200);   // 李姨
-      const L2 = H.lineOfHand(2, 200);   // 麦琪
-      const L3 = H.lineOfHand(3, 200);   // 艾米
+      const L1 = H.lineOfHand(1, 200);   // 墨千夜
+      const L2 = H.lineOfHand(2, 200);   // 绯罗刹
+      const L3 = H.lineOfHand(3, 200);   // 零·苓霜
 
       // ★ 核心：同一手牌，三个人看到的动线必须不一样 —— 这才叫「他自己的视角」
       ok(L1 !== L2 && L2 !== L3 && L1 !== L3,
         '★ 同一手牌，不同座位看到的动线不一样（全桌共用一条流水账 ≠ 他自己的经历）',
-        '李姨「' + L1 + '」');
+        '墨千夜「' + L1 + '」');
       // 自己 = 「你」
-      ok(L1.indexOf('你跟') >= 0 && L1.indexOf('你弃') >= 0, '李姨的动线里，它自己写作「你」');
-      ok(L2.indexOf('你加到') >= 0 && L2.indexOf('你全下') >= 0, '麦琪的动线里，它自己写作「你」');
+      ok(L1.indexOf('你跟') >= 0 && L1.indexOf('你弃') >= 0, '墨千夜的动线里，它自己写作「你」');
+      ok(L2.indexOf('你加到') >= 0 && L2.indexOf('你全下') >= 0, '绯罗刹的动线里，它自己写作「你」');
       // ★★ 反向 bug 的钉子（这条曾经是反的，害得 AI 把自己的动作当成别人的）
       ok(L1.indexOf('玩家') >= 0,
         '★★ 对 AI 来说，人类玩家叫「玩家」而不是「你」（这条曾经是反的：AI 会以为人类那步是自己干的）', L1);
-      ok(L1.indexOf('李姨') < 0, '★★ 李姨不会在自己的动线里看到自己的名字（看到就会误以为是别人）', L1);
-      ok(L2.indexOf('麦琪') < 0, '★★ 麦琪同理');
-      ok(L3.indexOf('艾米') < 0, '★★ 艾米同理');
+      ok(L1.indexOf('墨千夜') < 0, '★★ 墨千夜不会在自己的动线里看到自己的名字（看到就会误以为是别人）', L1);
+      ok(L2.indexOf('绯罗刹') < 0, '★★ 绯罗刹同理');
+      ok(L3.indexOf('零·苓霜') < 0, '★★ 零·苓霜同理');
       // 「面对多少」是只有他自己才知道的处境
       ok(L1.indexOf('(面对900)') >= 0,
-        '★ 李姨能看到自己当时「面对 900」——这个数别人看不到', L1);
-      ok(L2.indexOf('(面对') < 0, '麦琪这条没有多余的「面对」标注（那一手没人压她）', L2);
+        '★ 墨千夜能看到自己当时「面对 900」——这个数别人看不到', L1);
+      ok(L2.indexOf('(面对') < 0, '绯罗刹这条没有多余的「面对」标注（那一手没人压她）', L2);
       // 末尾的「共投」也是他自己的那个数
       ok(L2.indexOf('共投') >= 0, '动线末尾给出「他这一手共投了多少」', L2.slice(-18));
-      ok(L1.indexOf('共投 60') >= 0, '李姨的共投数跟她的实际投入一致', L1.slice(-14));
-      ok(L3.indexOf('共投') < 0, '艾米一手没投，就不写「共投」（不编 0）', L3);
+      ok(L1.indexOf('共投 60') >= 0, '墨千夜的共投数跟她的实际投入一致', L1.slice(-14));
+      ok(L3.indexOf('共投') < 0, '零·苓霜一手没投，就不写「共投」（不编 0）', L3);
       // 长度
       ok(L1.length <= 200 && L2.length <= 200 && L3.length <= 200, '三种视角都守住了长度上限',
         [L1.length, L2.length, L3.length].join('/'));
@@ -2709,12 +2709,12 @@ const brainOnSeat = p => !p.isHuman;
 
       // ★ 人多也不折叠掉他自己的动作：9 条动作，他两步过牌必须一个不少
       hl.length = 0;
-      ['麦琪', '王姨', '杰西', '虎姐', '莉莉', '艾米'].forEach((n, i) => {
+      ['绯罗刹', '稔岁姨', '魅羽·J', '虎彻·牙', '糖宫莉莉', '零·苓霜'].forEach((n, i) => {
         hl.push({ s:0, seat:i + 2, name:n, act:'call', to:20, allin:false, face:20, potBefore:20, put:20 });
       });
-      hl.push({ s:0, seat:1, name:'李姨', act:'check', to:0, allin:false, face:0, potBefore:140, put:0 });
+      hl.push({ s:0, seat:1, name:'墨千夜', act:'check', to:0, allin:false, face:0, potBefore:140, put:0 });
       hl.push({ s:0, seat:0, name:'你',   act:'check', to:0, allin:false, face:0, potBefore:140, put:0 });
-      hl.push({ s:0, seat:1, name:'李姨', act:'check', to:0, allin:false, face:0, potBefore:140, put:0 });
+      hl.push({ s:0, seat:1, name:'墨千夜', act:'check', to:0, allin:false, face:0, potBefore:140, put:0 });
       const Lbig = H.lineOfHand(1, 200);
       const myChecks = (Lbig.match(/你过/g) || []).length;
       ok(myChecks === 2,

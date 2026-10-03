@@ -59,7 +59,7 @@ def main():
     cid = arg('--id')
     dirname = arg('--dir')
     if not cid or not dirname:
-        print('用法：--id <干员内部ID> --dir <输出子目录名> [--reportonly]')
+        print('用法：--id <角色内部ID> --dir <输出子目录名> [--reportonly]')
         sys.exit(2)
 
     out = os.path.join(HERE, '音色素材', dirname)

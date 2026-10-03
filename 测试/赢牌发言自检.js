@@ -257,7 +257,7 @@ const logHas = (A, s) => [...A.d.querySelectorAll('#log .li')].some(x => x.textC
     const w = H.players()[1];
     const u = H.winFacts(w, {
       amt: 1234, hand: '三条', hole: 'A♥ A♦', board: 'A♠ K♦ 7♣ 3♥ 2♠',
-      revealed: true, others: '麦琪、杰西'
+      revealed: true, others: '绯罗刹、魅羽·J'
     });
     ok('★ 事实里写了赢了多少（数字由程序给，不让它算）', u.indexOf('你赢了 1,234') >= 0);
     ok('★ 写了牌型', u.indexOf('三条') >= 0);
@@ -518,7 +518,7 @@ const logHas = (A, s) => [...A.d.querySelectorAll('#log .li')].some(x => x.textC
 
     const ai = H.players()[1];
     await pumpUntil(H.winSpeak(ai, WIN_REPLY, 'glad'));
-    await H.winFacts(ai, { amt: 500, hand: '两对', hole: 'A♠ A♦', board: 'K♠ Q♦ J♣ 3♥ 2♠', revealed: true, others: '麦琪' });
+    await H.winFacts(ai, { amt: 500, hand: '两对', hole: 'A♠ A♦', board: 'K♠ Q♦ J♣ 3♥ 2♠', revealed: true, others: '绯罗刹' });
     // 连「问」这一步也过一遍（不真的发请求：先把它挡掉）
     A.w.fetch = async () => { throw new Error('不该真的发出去'); };
     await H.winAsk(ai, { amt: 500, hand: '两对', hole: 'A♠ A♦', board: '', revealed: false, others: '' });

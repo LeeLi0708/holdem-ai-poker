@@ -257,8 +257,8 @@ function armPlayer(p) {
 
     const avgLi = avg('liyi', 'call', 60);
     const avgMai = avg('maiqi', 'call', 60);
-    ok('★ 李姨（慢）比麦琪（急）停得久', avgLi > avgMai * 1.5,
-      '李姨 ' + Math.round(avgLi) + ' ms vs 麦琪 ' + Math.round(avgMai) + ' ms');
+    ok('★ 墨千夜（慢）比绯罗刹（急）停得久', avgLi > avgMai * 1.5,
+      '墨千夜 ' + Math.round(avgLi) + ' ms vs 绯罗刹 ' + Math.round(avgMai) + ' ms');
 
     const avgFoldFree = avg('jiexi', 'fold', 60, 0);
     const avgFoldPaid = avg('jiexi', 'fold', 60, 500);
@@ -316,7 +316,7 @@ function armPlayer(p) {
     await sleep(20);
 
     const mk = (says, voice) => ({
-      id: 2, name: '麦琪', emoji: '🔥', isHuman: false, brainUsed: true,
+      id: 2, name: '绯罗刹', emoji: '🔥', isHuman: false, brainUsed: true,
       actionType: 'call', lastAction: '跟注 40', aiRead: '', aiThink: '',
       aiSays: says, aiSay: '', aiSayVoice: voice
     });
@@ -460,7 +460,7 @@ function armPlayer(p) {
     await H.humanPause({ key: 'maiqi' }, { type: 'call' }, 0);
     H.parseSays(['甲', '乙'], 3);
     H.takeMind(H.players()[1], { say: ['一', '二'], voice: 1 });
-    H.logAct({ id: 2, name: '麦琪', emoji: '🔥', isHuman: false, brainUsed: true, actionType: 'call', aiRead: '', aiThink: '', aiSays: ['甲', '乙'], aiSay: '', aiSayVoice: true });
+    H.logAct({ id: 2, name: '绯罗刹', emoji: '🔥', isHuman: false, brainUsed: true, actionType: 'call', aiRead: '', aiThink: '', aiSays: ['甲', '乙'], aiSay: '', aiSayVoice: true });
     await sleep(60);
     H.ttsStop();
     ok('★★ 拟人节奏这条链（停顿 + 多句 + 排队）一次 Math.random 都没碰', mathHits === 0, mathHits + ' 次');

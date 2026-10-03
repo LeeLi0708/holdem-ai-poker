@@ -20,6 +20,7 @@ package-lock.json
 
 # ============ 自检与调试产物 ============
 *.log
+*.err
 测试/_out*
 测试/_backup_*
 测试/_preview_*

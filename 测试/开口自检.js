@@ -111,7 +111,7 @@ function boot(store) {
 }
 
 // 造一条「某人开口说了几句」的真实记录 —— 走 logAct，不手搓 handSay
-const SPEAKER = { id: 3, name: '麦琪', emoji: '🔥', isHuman: false, brainUsed: true,
+const SPEAKER = { id: 3, name: '绯罗刹', emoji: '🔥', isHuman: false, brainUsed: true,
                   actionType: 'raise', aiRead: '', aiThink: '', aiSays: [], aiSay: '', aiSayVoice: false };
 
 (async () => {
@@ -174,7 +174,7 @@ const SPEAKER = { id: 3, name: '麦琪', emoji: '🔥', isHuman: false, brainUse
     const A = boot(null);
     await sleep(340);
     const H = A.w.HOLDEM;
-    const P = H.players()[1];                       // 李姨（日志里那个）
+    const P = H.players()[1];                       // 墨千夜（日志里那个）
     const SAY1 = '这手牌我陪你玩到底。';
     const SAY2 = '别磨蹭了，跟还是不跟？';
 
@@ -191,7 +191,7 @@ const SPEAKER = { id: 3, name: '麦琪', emoji: '🔥', isHuman: false, brainUse
     ok('★★★ lite 档现在能看到「【桌上说出口的话】」这一段',
       uLite.indexOf('【桌上说出口的话】') >= 0);
     ok('★★★ 而且看得到具体说了什么', uLite.indexOf(SAY1) >= 0 && uLite.indexOf(SAY2) >= 0);
-    ok('★ 带上了说话人的名字', uLite.indexOf('麦琪：') >= 0);
+    ok('★ 带上了说话人的名字', uLite.indexOf('绯罗刹：') >= 0);
     ok('★ lite 档别的硬信息没被这段挤掉（【这一轮】还在）', uLite.indexOf('【这一轮】') >= 0);
 
     // ---- 反向：说话的人自己看不到自己这句
@@ -222,7 +222,7 @@ const SPEAKER = { id: 3, name: '麦琪', emoji: '🔥', isHuman: false, brainUse
     const A = boot(null);
     await sleep(340);
     const H = A.w.HOLDEM;
-    const P = H.players()[1];                       // 李姨：日志里那个位置
+    const P = H.players()[1];                       // 墨千夜：日志里那个位置
     const LINE = '我先看看牌再说。';
 
     ok('★ 分层档位默认开着（否则「翻牌前走 lite」这回事根本不存在）',

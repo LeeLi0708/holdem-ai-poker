@@ -92,13 +92,23 @@ TONES = {
     'flat':  {'label': '平铺直叙', 'ins': ''},
     'hot':   {'label': '恼火',     'ins': 'You are a helpful assistant. 请非常生气地说一句话。<|endofprompt|>'},
     'glad':  {'label': '得意',     'ins': 'You are a helpful assistant. 请非常开心地说一句话。<|endofprompt|>'},
-    'down':  {'label': '丧气',     'ins': 'You are a helpful assistant. 请非常伤心地说一句话。<|endofprompt|>'},
+    'down':  {'label': '丧气',     'ins': 'You are a helpful assistant. 请带着失落地说一句话。<|endofprompt|>'},
     'quick': {'label': '急促',     'ins': 'You are a helpful assistant. 请用尽可能快地语速说一句话。<|endofprompt|>'},
 }
 
 # ⚠ slow「慢悠悠」已于第二十九轮下架：那条指令会被模型理解成「边说边停」，
 #   一句里塞进近两秒死空白。删掉条目即可 —— tone_ins() 查不到就返回 ''，
 #   老存档里带着 slow 的请求会安静地退化成「不特别」，不会报错。
+#
+# ⚠⚠ down 的指令词第三十一轮换过一次（「请非常伤心」→「请带着失落」）。
+#   病根和 slow 是**同一类**：指令式口气会顺手改掉角色的**音色身份**。
+#   实测艾米正常 F0 269.7Hz，说「非常伤心」时掉到 201.7Hz
+#   （-25%，听着像换了个人），而且 speed 越大压得越低（speed=2.0 只剩 179.1Hz）
+#   —— 所以「拉语速」治不了它，反而加剧。
+#   换成「带着失落」后 F0 218.2Hz（只掉 19%），时长 2.92s → 1.96s，
+#   用户听样本定的（测试/_slow_probe/09_*.wav）。
+#   ⚠ 别再往「非常」这类量化词上调 —— 实测去掉「非常」反而更慢（3.24s），
+#     量化词不是主因；**词的整体语义**才是。
 
 
 def tone_ins(tid):
@@ -151,20 +161,53 @@ def clean_para(text):
 SPEED_MIN, SPEED_MAX = 0.5, 2.0
 
 
-# ---------------------------------------------------------------- 句内静音瘦身
-GAP_MAX_SEC = 0.40      # 内部空白超过这个长度就压到这么长
+# ---------------------------------------------------------------- 停顿塑形
+#
+# 起因（2026-10-02，用户原话「讲话的停顿可以自然一点」）。
+# 动手之前先量了 42 段真样本（测试/_probe停顿分布.py，判据取 peak 的 8% ——
+# 1% 只抓「真·归零」，会把换气、底噪处的停顿整个漏掉，系统性低估长度）：
+#     · 开口前空白  中位 0.30 秒，最长 1.01 秒   ← 听感就是「愣一下才开口」
+#     · 说完后空白  中位 0.30 秒，最长 4.51 秒   ← 早说完了，牌局还干等着
+#     · 句内停顿    中位 0.12 秒，P90 0.54 秒，最长 2.96 秒
+# ⚠ 原来那道 trim_long_gaps **明确不碰首尾**（注释原话「首尾留着」），
+#   而首尾恰恰是耳朵最先察觉、也最不该留的地方。尾部拖尾还直接拖慢牌局：
+#   说话闸门是「播完才轮到下一个人」，多出来的那 0.3~4.5 秒静音等于白等。
+#
+# 三道工序，都**只动静音**，语音一个样本不碰：
+#   ① 开口前 → 最多留 HEAD_KEEP 秒
+#   ② 说完后 → 最多留 TAIL_KEEP 秒
+#   ③ 句内   → 超过 GAP_MAX_SEC 的压下来，上限本身再带 ±GAP_JITTER 抖动 ——
+#               真人每处停顿长短都不一样，处处精确 0.38 秒反而像机器。
+HEAD_KEEP = 0.10        # 开口前最多留这么久的空白（原来中位 0.30，像在发呆）
+TAIL_KEEP = 0.20        # 说完之后最多留这么久（原来最长 4.51 秒）
+GAP_MAX_SEC = 0.38      # 句内停顿上限（原来 0.40）
+GAP_JITTER = 0.15       # 句内上限的 ± 抖动比例，打散「处处等长」的机械感
+GAP_MIN_SEC = 0.05      # 比这还短的静音不当作「停顿」，一概不动
+
+# ⚠ 抖动必须**确定性**：每次调用都从同一起点抖，同一段音频结果可复现。
+#   不然验证脚本没法断言，缓存前后也对不上（服务端缓存键里没有随机数这一项）。
+_GAP_SEED = [20261002]
 
 
-def trim_long_gaps(audio, sr, max_gap=GAP_MAX_SEC):
-    """把**句内**超长静音压短，首尾不动。
+def _gap_rand():
+    _GAP_SEED[0] = (_GAP_SEED[0] * 1664525 + 1013904223) & 0xFFFFFFFF
+    return _GAP_SEED[0] / 4294967296.0
 
-    动机（2026-10-02 实测）：口气「慢悠悠」的指令是「请用尽可能慢地语速说一句话」，
-    CosyVoice 会把它理解成「边说边停」—— 艾米那句 9.60 秒里塞了 1.80 + 0.95 秒
-    两段死空白，王姨 13.32 秒里塞了 2.90 + 1.43 秒。听感就是「一卡一卡的」。
-    **慢速该体现在语速上，不该体现在空白上。**
 
-    ⚠ 从静音段中间裁：裁掉的两侧本来都接近零，拼起来不会爆音。
-    ⚠ 没有超长静音就原样返回 —— 正常句子一个样本都不动。
+def _cap_samples(L, sec, sr):
+    """想保留 sec 秒，但不能比本来就有的 L 还长（不补长，只裁剪）。"""
+    if sec is None or sec == float('inf'):
+        return L
+    return min(L, int(round(sec * sr)))
+
+
+def shape_gaps(audio, sr, max_gap=GAP_MAX_SEC,
+               head_keep=HEAD_KEEP, tail_keep=TAIL_KEEP):
+    """把合成音频**两端**和**句内**的空白塑形到自然长度（动机见上面那段）。
+
+    ⚠ 只裁静音，**语音一个样本都不动** —— 有守恒断言盯着（测试/_probe静音瘦身.py）。
+    ⚠ 没有需要动的地方就原样返回：本来干净的音频逐样本不变。
+    ⚠ 一律从静音段**中间**裁：裁掉的两侧本来就接近零，拼起来不会爆音。
     """
     import numpy as np
     audio = np.ascontiguousarray(audio)
@@ -181,8 +224,11 @@ def trim_long_gaps(audio, sr, max_gap=GAP_MAX_SEC):
     if peak <= 0:
         return audio
     silent = rms < max(peak * 0.01, 1e-4)
+    if bool(silent.all()):
+        return audio          # 整段都没声音：没有可塑形的东西，原样交回
 
-    cuts = []
+    _GAP_SEED[0] = 20261002          # 同一段音频 → 同一种抖法
+    plan = []                        # [(段起点, 段终点, 想保留的样本数)]
     i = 0
     while i < nf:
         if not silent[i]:
@@ -193,26 +239,45 @@ def trim_long_gaps(audio, sr, max_gap=GAP_MAX_SEC):
             j += 1
         s = i * hop
         e = min(n, (j - 1) * hop + win)
-        # 只动内部静音：首尾留着（句首那口气是自然的，句尾无所谓）
-        if i > 0 and j < nf and (e - s) > max_gap * sr:
-            keep = int(round(max_gap * sr))
-            # ⚠ 保留**两端各一半**、裁中间：起点必须是 s + keep//2。
-            #   写成 s + drop//2 会让裁剪区间越过段尾，把静音后面的**字一起吃掉**
-            #   （这个 bug 被验证脚本的正向断言抓到过一次，见 _probe静音瘦身.py）。
-            a = s + keep // 2
-            b = e - (keep - keep // 2)
-            cuts.append((a, b))
+        L = e - s
+        if L >= GAP_MIN_SEC * sr:
+            if i == 0:                                   # 开头那一段
+                want = _cap_samples(L, head_keep, sr)
+            elif j >= nf:                                # 收尾那一段
+                want = _cap_samples(L, tail_keep, sr)
+            else:                                        # 句内
+                lim = max_gap * (1.0 + GAP_JITTER * (2.0 * _gap_rand() - 1.0))
+                want = _cap_samples(L, lim, sr)
+            if want < L:
+                plan.append((s, e, want))
         i = j
-    if not cuts:
+    if not plan:
         return audio
 
-    keep = []
+    out = []
     cur = 0
-    for a, b in cuts:
-        keep.append(audio[cur:a])
-        cur = b
-    keep.append(audio[cur:])
-    return np.concatenate(keep)
+    for s, e, want in plan:
+        out.append(audio[cur:s])
+        # 保留两端各一半、裁中间。
+        # ⚠ 起点千万别写成 s + (L - want) // 2 —— 那样区间会越过段尾，
+        #   把静音**后面的字一起吃掉**（这个 bug 被守恒断言抓到过一次）。
+        a = s + want // 2
+        b = e - (want - want // 2)
+        out.append(audio[s:a])
+        out.append(audio[b:e])
+        cur = e
+    out.append(audio[cur:])
+    return np.concatenate(out)
+
+
+def trim_long_gaps(audio, sr, max_gap=GAP_MAX_SEC):
+    """兼容壳：老名字、老语义 —— 只压句内超长空白，首尾一律不动。
+
+    合成出口已经改用 shape_gaps；留它是因为 README、老验证脚本都还这么叫，
+    而且「首尾不动」这个更弱的语义在个别场景（比如将来接别的后端）还得留着。
+    """
+    return shape_gaps(audio, sr, max_gap=max_gap,
+                      head_keep=float('inf'), tail_keep=float('inf'))
 
 
 def norm_speed(v):
@@ -436,8 +501,8 @@ class CosyBackend:
         if not chunks:
             raise BackendError('CosyVoice 没有返回音频')
         audio = np.concatenate(chunks)
-        # 🔇 句内超长空白压短 —— 「慢悠悠」会让模型边说边停（详见 trim_long_gaps）。
-        audio = trim_long_gaps(audio, self.sr)
+        # 🔇 停顿塑形：开口前、说完后、句内三处空白一起量（详见 shape_gaps）。
+        audio = shape_gaps(audio, self.sr)
         bio = io.BytesIO()
         sf.write(bio, audio, self.sr, format='WAV', subtype='PCM_16')
         return bio.getvalue()

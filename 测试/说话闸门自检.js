@@ -207,7 +207,7 @@ async function runTurnWithSay(H, T, ps, target, text, opts) {
     await sleep(10);
 
     const mk = (say, voice) => ({
-      id: 2, name: '麦琪', emoji: '🔥', isHuman: false, brainUsed: true,
+      id: 2, name: '绯罗刹', emoji: '🔥', isHuman: false, brainUsed: true,
       actionType: 'call', lastAction: '跟注 40', aiRead: '', aiThink: '', aiSay: say, aiSayVoice: voice
     });
 

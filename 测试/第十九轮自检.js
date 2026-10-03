@@ -269,7 +269,7 @@ let SFX_MASTER = null;   // 音效播放链的参照物：必须趁早抓，晚�
   w.__ttsHits = [];
   H.ttsStop();
   const fake = {
-    id: 2, name: '麦琪', emoji: '🔥', isHuman: false, brainUsed: true,
+    id: 2, name: '绯罗刹', emoji: '🔥', isHuman: false, brainUsed: true,
     actionType: 'call', lastAction: '跟注 40',
     aiRead: 'MARK-私有-读牌内容', aiThink: 'MARK-私有-心里话内容',
     aiSay: 'MARK-公开-台上话', aiSayVoice: true      // AI 标了「这句要念」
@@ -289,7 +289,7 @@ let SFX_MASTER = null;   // 音效播放链的参照物：必须趁早抓，晚�
   w.__ttsHits = [];
   H.ttsStop();
   const quiet = {
-    id: 2, name: '麦琪', emoji: '🔥', isHuman: false, brainUsed: true,
+    id: 2, name: '绯罗刹', emoji: '🔥', isHuman: false, brainUsed: true,
     actionType: 'call', lastAction: '跟注 40',
     aiRead: '', aiThink: '', aiSay: 'MARK-只写不念', aiSayVoice: false
   };
